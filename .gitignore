@@ -1,0 +1,14 @@
+# Erlang crash dumps
+erl_crash.dump
+*.beam
+
+# Elixir
+/_build/
+/cover/
+/deps/
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/runtime.exs
+.elixir_ls/
