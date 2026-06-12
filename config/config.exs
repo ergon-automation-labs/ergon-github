@@ -14,4 +14,4 @@ config :bot_army_github, BotArmyGithub.Repo,
 
 config :logger, :console,
   format: "$time [$level] $metadata$message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :repo, :number, :title, :workflow, :reason, :subject, :event, :error]
