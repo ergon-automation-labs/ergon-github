@@ -31,6 +31,7 @@ defmodule BotArmyGithub.Application do
       []
       |> maybe_add_repo()
       |> maybe_add_pulse_publisher()
+      |> maybe_add_consumer()
       |> maybe_add_http_server()
       |> maybe_add_workers()
 
@@ -67,6 +68,14 @@ defmodule BotArmyGithub.Application do
         }
         | children
       ]
+    end
+  end
+
+  defp maybe_add_consumer(children) do
+    if @env == :test do
+      children
+    else
+      [{BotArmyGithub.NATS.Consumer, []} | children]
     end
   end
 
