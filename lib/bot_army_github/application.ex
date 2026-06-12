@@ -23,6 +23,7 @@ defmodule BotArmyGithub.Application do
       []
       |> maybe_add_repo()
       |> maybe_add_pulse_publisher()
+      |> maybe_add_http_server()
       |> maybe_add_workers()
 
     opts = [strategy: :one_for_one, name: BotArmyGithub.Supervisor]
@@ -45,14 +46,33 @@ defmodule BotArmyGithub.Application do
     end
   end
 
+  defp maybe_add_http_server(children) do
+    if @env == :test do
+      children
+    else
+      http_port = System.get_env("BOT_ARMY_GITHUB_HTTP_PORT", "39904") |> String.to_integer()
+
+      [
+        {
+          Plug.Cowboy,
+          [scheme: :http, plug: BotArmyGithub.WebhookReceiver, options: [port: http_port]]
+        }
+        | children
+      ]
+    end
+  end
+
   defp maybe_add_workers(children) do
     if @env == :test do
       children
     else
-      # Bot-specific workers and pollers go here (GenServers that do async work)
-      # Examples: Scheduler, Poller, Watcher
-      # Pattern: gated with if @env == :test to prevent long-running processes in test
-      children
+      repos = Application.get_env(:bot_army_github, :sync_repos, [])
+
+      poll_interval =
+        Application.get_env(:bot_army_github, :sync_poll_interval_ms, :timer.minutes(15))
+
+      worker = {BotArmyGithub.IssueSyncWorker, [repos: repos, poll_interval_ms: poll_interval]}
+      [worker | children]
     end
   end
 end
