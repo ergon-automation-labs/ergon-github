@@ -12,6 +12,14 @@ defmodule BotArmyGithub.Application do
 
   use Application
 
+  @dialyzer {:nowarn_function,
+             [
+               {:maybe_add_repo, 1},
+               {:maybe_add_pulse_publisher, 1},
+               {:maybe_add_http_server, 1},
+               {:maybe_add_workers, 1}
+             ]}
+
   @env Mix.env()
 
   @impl true

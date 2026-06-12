@@ -29,7 +29,7 @@ defmodule BotArmyGithub.IssueSyncWorker do
       timer: nil
     }
 
-    if Application.get_env(:bot_army_github, :env, Mix.env()) != :test do
+    if Application.get_env(:bot_army_github, :env, :dev) != :test do
       Process.send_after(self(), :sync_all, 5_000)
     end
 

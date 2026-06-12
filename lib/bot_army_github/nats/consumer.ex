@@ -161,7 +161,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: data}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -179,7 +179,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issues}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -195,7 +195,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: file}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -211,7 +211,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: status}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -227,7 +227,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: comment}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -243,7 +243,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -259,7 +259,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -275,7 +275,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: approval}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -291,7 +291,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{synced: count}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -317,7 +317,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -343,7 +343,7 @@ defmodule BotArmyGithub.NATS.Consumer do
             send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
+            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
@@ -354,13 +354,8 @@ defmodule BotArmyGithub.NATS.Consumer do
   defp route_request(payload, "github.issue.linked", reply_to, state) do
     case payload do
       %{"owner" => owner, "repo" => repo} ->
-        case BotArmyGithub.IssueSyncWorker.list_linked_issues(owner, repo) do
-          {:ok, issues} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issues}))
-
-          {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(reason))
-        end
+        {:ok, issues} = BotArmyGithub.IssueSyncWorker.list_linked_issues(owner, repo)
+        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issues}))
 
       _ ->
         send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
