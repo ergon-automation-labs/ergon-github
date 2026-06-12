@@ -18,7 +18,8 @@ defmodule BotArmyGithub.Application do
                {:maybe_add_pulse_publisher, 1},
                {:maybe_add_consumer, 1},
                {:maybe_add_http_server, 1},
-               {:maybe_add_workers, 1}
+               {:maybe_add_workers, 1},
+               {:maybe_add_docs_search_responder, 1}
              ]}
 
   @env Mix.env()
@@ -35,6 +36,7 @@ defmodule BotArmyGithub.Application do
       |> maybe_add_consumer()
       |> maybe_add_http_server()
       |> maybe_add_workers()
+      |> maybe_add_docs_search_responder()
 
     opts = [strategy: :one_for_one, name: BotArmyGithub.Supervisor]
     Supervisor.start_link(children, opts)
@@ -91,6 +93,17 @@ defmodule BotArmyGithub.Application do
 
       worker = {BotArmyGithub.IssueSyncWorker, [repos: repos, poll_interval_ms: poll_interval]}
       [worker | children]
+    end
+  end
+
+  defp maybe_add_docs_search_responder(children) do
+    if @env == :test do
+      children
+    else
+      repo_path =
+        Application.get_env(:bot_army_github, :ingestor_repo_path, "/Users/abby/code/elixir_bots")
+
+      [{BotArmyGithub.NATS.DocsSearchResponder, [repo_path: repo_path]} | children]
     end
   end
 end
