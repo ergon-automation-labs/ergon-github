@@ -16,6 +16,7 @@ defmodule BotArmyGithub.Application do
              [
                {:maybe_add_repo, 1},
                {:maybe_add_pulse_publisher, 1},
+               {:maybe_add_consumer, 1},
                {:maybe_add_http_server, 1},
                {:maybe_add_workers, 1}
              ]}
