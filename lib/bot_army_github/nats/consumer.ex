@@ -61,9 +61,9 @@ defmodule BotArmyGithub.NATS.Consumer do
 
   @impl true
   def handle_continue(:connect, state) do
-    case GenServer.call(BotArmyRuntime.NATS.Connection, :get_connection, 5000) do
+    case GenServer.call(BotArmyLibraryRuntime.NATS.Connection, :get_connection, 5000) do
       {:ok, conn} ->
-        BotArmyRuntime.NATS.Connection.subscribe_to_status()
+        BotArmyLibraryRuntime.NATS.Connection.subscribe_to_status()
         Logger.info("[NATS.Consumer] Connected to NATS, subscribing to GitHub subjects")
 
         subscriptions =
@@ -84,7 +84,7 @@ defmodule BotArmyGithub.NATS.Consumer do
           end)
           |> Enum.filter(&(not is_nil(&1)))
 
-        BotArmyRuntime.Registry.register("github", @subjects, @version)
+        BotArmyLibraryRuntime.Registry.register("github", @subjects, @version)
 
         {:noreply, %{state | subscriptions: subscriptions, conn: conn}}
 
@@ -102,8 +102,8 @@ defmodule BotArmyGithub.NATS.Consumer do
 
   @impl true
   def handle_info({:msg, msg}, state) do
-    BotArmyRuntime.Tracing.with_consumer_span(msg.topic, Map.get(msg, :headers), fn ->
-      case BotArmyCore.NATS.Decoder.decode(msg.body) do
+    BotArmyLibraryRuntime.Tracing.with_consumer_span(msg.topic, Map.get(msg, :headers), fn ->
+      case BotArmyLibraryCore.NATS.Decoder.decode(msg.body) do
         {:ok, decoded_message} ->
           if msg.reply_to do
             # Request/reply pattern
@@ -158,14 +158,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "number" => number} ->
         case BotArmyGitHub.GitHub.Client.get_pr(owner, repo, number) do
           {:ok, data} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: data}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: data}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -176,14 +176,14 @@ defmodule BotArmyGithub.NATS.Consumer do
 
         case BotArmyGitHub.GitHub.Client.list_issues(owner, repo, state_param) do
           {:ok, issues} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issues}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issues}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -192,14 +192,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "path" => path} ->
         case BotArmyGitHub.GitHub.Client.get_file(owner, repo, path) do
           {:ok, file} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: file}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: file}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -208,14 +208,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "ref" => ref} ->
         case BotArmyGitHub.GitHub.Client.get_ci_status(owner, repo, ref) do
           {:ok, status} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: status}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: status}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -224,14 +224,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "number" => number, "body" => body} ->
         case BotArmyGitHub.GitHub.Client.create_pr_comment(owner, repo, number, body) do
           {:ok, comment} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: comment}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: comment}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -240,14 +240,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "title" => title, "body" => body} ->
         case BotArmyGitHub.GitHub.Client.create_issue(owner, repo, title, body) do
           {:ok, issue} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -256,14 +256,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "number" => number} ->
         case BotArmyGitHub.GitHub.Client.close_issue(owner, repo, number) do
           {:ok, issue} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -272,14 +272,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo, "number" => number} ->
         case BotArmyGitHub.GitHub.Client.approve_pr(owner, repo, number) do
           {:ok, approval} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: approval}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: approval}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -288,14 +288,14 @@ defmodule BotArmyGithub.NATS.Consumer do
       %{"owner" => owner, "repo" => repo} ->
         case BotArmyGithub.IssueSyncWorker.sync_repo_issues(owner, repo, nil) do
           {:ok, count} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{synced: count}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{synced: count}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -314,14 +314,14 @@ defmodule BotArmyGithub.NATS.Consumer do
                task_id
              ) do
           {:ok, issue} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -340,14 +340,14 @@ defmodule BotArmyGithub.NATS.Consumer do
                project_id
              ) do
           {:ok, issue} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issue}))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issue}))
 
           {:error, reason} ->
-            send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error(inspect(reason)))
+            send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error(inspect(reason)))
         end
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
@@ -355,16 +355,16 @@ defmodule BotArmyGithub.NATS.Consumer do
     case payload do
       %{"owner" => owner, "repo" => repo} ->
         {:ok, issues} = BotArmyGithub.IssueSyncWorker.list_linked_issues(owner, repo)
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.ok(%{data: issues}))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.ok(%{data: issues}))
 
       _ ->
-        send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("missing parameters"))
+        send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("missing parameters"))
     end
   end
 
   defp route_request(_payload, topic, reply_to, state) do
     Logger.debug("[NATS.Consumer] Unhandled request topic: #{topic}")
-    send_reply(state, reply_to, BotArmyRuntime.NATS.Reply.error("unknown_subject"))
+    send_reply(state, reply_to, BotArmyLibraryRuntime.NATS.Reply.error("unknown_subject"))
   end
 
   defp send_reply(state, reply_to, response) do
@@ -456,7 +456,7 @@ defmodule BotArmyGithub.NATS.Consumer do
   defp handle_ci_event(_payload, _action), do: :ok
 
   defp publish_to_gtd(payload) do
-    case GenServer.call(BotArmyRuntime.NATS.Connection, :get_connection, 2_000) do
+    case GenServer.call(BotArmyLibraryRuntime.NATS.Connection, :get_connection, 2_000) do
       {:ok, conn} ->
         Gnat.pub(conn, "gtd.inbox.add", Jason.encode!(payload))
 

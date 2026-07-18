@@ -8,7 +8,7 @@ defmodule GithubBot.Release do
   @app :bot_army_github
 
   def migrate do
-    BotArmyRuntime.Ecto.MigrationRunner.run(
+    BotArmyLibraryRuntime.Ecto.MigrationRunner.run(
       repo_module: BotArmyGithub.Repo,
       app_module: @app
     )

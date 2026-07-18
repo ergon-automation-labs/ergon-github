@@ -22,7 +22,7 @@ defmodule BotArmyGithub.Indexing.DocsPublisher do
   Publish a single indexed file to NATS.
 
   Options:
-  - conn: NATS connection (required if not using BotArmyRuntime.NATS.Connection)
+  - conn: NATS connection (required if not using BotArmyLibraryRuntime.NATS.Connection)
   - repo_path: repository path for context
   """
   def publish_file(file_metadata, opts \\ []) do
@@ -209,7 +209,7 @@ defmodule BotArmyGithub.Indexing.DocsPublisher do
   end
 
   defp get_nats_connection do
-    case GenServer.call(BotArmyRuntime.NATS.Connection, :get_connection, 5000) do
+    case GenServer.call(BotArmyLibraryRuntime.NATS.Connection, :get_connection, 5000) do
       {:ok, conn} -> conn
       error -> error
     end

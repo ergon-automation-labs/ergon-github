@@ -142,7 +142,7 @@ defmodule BotArmyGithub.WebhookReceiver do
   end
 
   defp publish_to_nats(subject, payload) do
-    case GenServer.call(BotArmyRuntime.NATS.Connection, :get_connection, 2_000) do
+    case GenServer.call(BotArmyLibraryRuntime.NATS.Connection, :get_connection, 2_000) do
       {:ok, conn} ->
         Gnat.pub(conn, subject, Jason.encode!(payload))
         :ok

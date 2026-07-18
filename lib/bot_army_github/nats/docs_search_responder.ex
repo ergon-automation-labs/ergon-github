@@ -27,7 +27,7 @@ defmodule BotArmyGithub.NATS.DocsSearchResponder do
       {:ok, index} ->
         Logger.info("[DocsSearchResponder] Index built from #{repo_path}")
 
-        conn = GenServer.call(BotArmyRuntime.NATS.Connection, :get_connection, 5000)
+        conn = GenServer.call(BotArmyLibraryRuntime.NATS.Connection, :get_connection, 5000)
 
         with {:ok, _} <- Gnat.sub(conn, self(), "github.docs.search"),
              {:ok, _} <- Gnat.sub(conn, self(), "github.docs.stats") do
