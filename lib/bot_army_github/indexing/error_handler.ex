@@ -124,6 +124,8 @@ defmodule BotArmyGithub.Indexing.ErrorHandler do
   @doc """
   Create an indexing error with context.
   """
+  @spec new_error(atom(), String.t()) :: no_return()
+  @spec new_error(atom(), String.t(), map()) :: no_return()
   def new_error(type, message, context \\ %{}) do
     raise IndexingError,
       type: type,
